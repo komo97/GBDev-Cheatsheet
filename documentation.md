@@ -14,6 +14,21 @@
 3. [OPCODES](#opcodes)   
 &emsp;3.1. [Interrupt operations](#interrupt-operations)   
 &emsp;&emsp;3.1.1. [Disable interrupts](#disable-interrupts)   
+&emsp;&emsp;3.1.2. [Enable interrupts](#enable-interrupts)   
+&emsp;&emsp;3.1.3. [Static value](#static-value)   
+&emsp;3.2. [Flow control operations](#flow-control-operations)   
+&emsp;&emsp;3.2.1. [Jump](#jump)   
+&emsp;&emsp;3.2.2. [Jump relative](#jump-relative)   
+&emsp;&emsp;3.2.3. [Function call](#function-call)   
+&emsp;&emsp;3.2.4. [Return to previous point](#return-to-previous-point)   
+&emsp;&emsp;3.2.5. [Return to previous point and enable interrupts](#return-to-previous-point-and-enable-interrupts)   
+&emsp;3.3. [Data management](#data-management)   
+&emsp;&emsp;3.3.1. [Load](#load)   
+&emsp;&emsp;3.3.2. [Push](#push)   
+&emsp;&emsp;3.3.3. [Pop](#pop)   
+&emsp;3.4. [Aritmetic operations](#aritmetic-operations)   
+&emsp;&emsp;3.4.1. [Compares a and <value> and sets flags](#compares-a-and-value-and-sets-flags)   
+&emsp;3.5. [Ors something with something](#ors-something-with-something)   
 4. [Interrupts](#interrupts)   
 
 <!-- /MDTOC -->
@@ -22,35 +37,37 @@
 ## COMPILER INSTRUCTIONS
 -----
 ### Compiler REPEAT
-> Repeats code for a memory range `<offset to repeat>`
+> Repeats code for a memory range.
+> - `<offset to repeat>`
 
 ```RGBASM
 	REPT <high memory direction> - <low memory direction>
 ```
 
 ### Finishes REPEAT instruction.
-> Tells the compiler to stop repeating
+> Tells the compiler to stop repeating.
 
 ```RGBASM
     ENDR
 ```
 
 ### Section declaration
-> Declares a section to the compiler
+> Declares a section to the compiler.
+> - ``<name string>``, ``<memory area>``
 
 ```RGBASM
 	SECTION <name string>, <mem area>
 ```
 
 ### Global label
-> Declares a global label for the execution to jump to
+> Declares a global label for the execution to jump to.
 
 ```RGBASM
 	<global label>:
 ```
 
 ### Local label
-> Declares a local label for the execution to jump to, only works inside a global label
+> Declares a local label for the execution to jump to, only works inside a global label.
 
 ```RGBASM
 	.<local label>
@@ -64,120 +81,135 @@ OPCODES
 ### Interrupt operations
 
 #### Disable interrupts
-- no parameters
+> Disables all interrupts until `ei` is called.
+> - no parameters
+
 ```RGBASM
 	di
-	```
+```
 
 #### Enable interrupts
-- no parameters
+> Enables interrupts according to the `IE` register until `di` is called.
+> - no parameters
+
 ```RGBASM
 	ei
-	```
+```
 
 #### Static value
- - Compiler instruction, can use strings as value can place a comma and another `<value>`
- - ``<value>``, ``[<value>]``
- ```RGBASM
+> Compiler instruction, can use strings as value can place a comma and another `<value>`>.
+> - ``<value>``, ``[<value>]``
+
+```RGBASM
 	db <value>, [<value>]
-	```
+```
 
 ### Flow control operations
 
 #### Jump
-- Jumps flow of the program to an address
-- ``<condition C (carry)/ NC (no carry)/ Z (zero) / NZ (not zero)>``, ``<address>``
+> Jumps flow of the program to an address.
+> - ``<condition>``, ``<address>``
 
-	| conditions | Explanation |
-	|------------|-------------|
-	| C			 | (carry)	   |
-	| NC 	     | (no carry)  |
-	| Z          | (zero)      |
-	| NZ         | (not zero)  |
+| conditions | Explanation |
+|------------|-------------|
+| C			 | (carry)	   |
+| NC 	     | (no carry)  |
+| Z          | (zero)      |
+| NZ         | (not zero)  |
 
-	```RGBASM
-	jp [<condition>], <address>
-	```
+```RGBASM
+    jp [<condition>], <address>
+```
 
 #### Jump relative
-- Jumps flow of the program to an address relative to the current
-- ``[<condition flag> if not present always jumps]``, ``<address to jump>``
+> Jumps flow of the program to an address relative to the current.
+> - ``[<condition flag> if not present always jumps]``, ``<address to jump>``
 
-	| conditions | Explanation |
-	|------------|-------------|
-	| C			 | (carry)	   |
-	| NC 	     | (no carry)  |
-	| Z          | (zero)      |
-	| NZ         | (not zero)  |
+| conditions | Explanation |
+|------------|-------------|
+| C			 | (carry)	   |
+| NC 	     | (no carry)  |
+| Z          | (zero)      |
+| NZ         | (not zero)  |
 
-	```RGBASM
-	jr [<condition flag>], <address>
-	```
+```RGBASM
+   jr [<condition flag>], <address>
+```
 
 #### Function call
-- Calls a function by jumping to an address and pushes the current address + 1 to the stack
-- ``[<condition flag> if not present always jumps]``, ``<function name>``
+> Calls a function by jumping to an address and pushes the current address + 1 to the stack.
+> - ``[<condition flag> if not present always jumps]``, ``<function name>``
 
-	| conditions | Explanation |
-	|------------|-------------|
-	| C			 | (carry)	   |
-	| NC 	     | (no carry)  |
-	| Z          | (zero)      |
-	| NZ         | (not zero)  |
+| conditions | Explanation |
+|------------|-------------|
+| C			 | (carry)	   |
+| NC 	     | (no carry)  |
+| Z          | (zero)      |
+| NZ         | (not zero)  |
 
-	```RGBASM
-	call [<condition flag>], <function name>
-	```
+```RGBASM
+    call [<condition flag>], <function name>
+```
 
 #### Return to previous point
-- Returns execution flow to the previous point by popping the stack and jumping there. To be used after a call statement.
-- ``[<condition flag> if not present always jumps]``
+> Returns execution flow to the previous point by popping the stack and jumping there. To be used after a call statement.
+> - ``[<condition flag> if not present always jumps]``
 
-	| conditions | Explanation |
-	|------------|-------------|
-	| C			 | (carry)	   |
-	| NC 	     | (no carry)  |
-	| Z          | (zero)      |
-	| NZ         | (not zero)  |
+| conditions | Explanation |
+|------------|-------------|
+| C			 | (carry)	   |
+| NC 	     | (no carry)  |
+| Z          | (zero)      |
+| NZ         | (not zero)  |
 
-	```RGBASM
-	ret [<condition flag>]
-	```
+```RGBASM
+    ret [<condition flag>]
+```
 
 #### Return to previous point and enable interrupts
-- Returns execution flow to the previous point by popping the stack and jumping there and then enables system interrupts again. To be used after a call statement.
-- ``[<condition flag> if not present always jumps]``
+> Returns execution flow to the previous point by popping the stack and jumping there and then enables system interrupts again. To be used after a call statement.
+> - ``[<condition flag> if not present always jumps]``
 
-	| conditions | Explanation |
-	|------------|-------------|
-	| C			 | (carry)	   |
-	| NC 	     | (no carry)  |
-	| Z          | (zero)      |
-	| NZ         | (not zero)  |
+| conditions | Explanation |
+|------------|-------------|
+| C			 | (carry)	   |
+| NC 	     | (no carry)  |
+| Z          | (zero)      |
+| NZ         | (not zero)  |
 
-	```RGBASM
-	reti [<condition flag>]
-	```
+```RGBASM
+    reti [<condition flag>]
+```
 
-### Load
-- ``<destination>``, ``<source>``
+### Data management
+
+#### Load
+> Loads the contents of `<source>` into `<destination>`.
+> - ``<destination>``, ``<source>``
+
 ```RGBASM
     ld <destination>, <source>
-	```
+```
 
-### Pushes a 16 bits register contents to the stack
-- ``<register>``
+#### Push
+> Pushes a 16 bits register contents to the stack.  
+> SLOOOOOOOW
+> - ``<register>``
 ```RGBASM
 	push <hl/de/bc>
-	```
+```
 
-### Pops the stack value to a 16 bits register
-- ``<register>``
+#### Pop
+> Pops the stack value to a 16 bits register.  
+> SLOOOOOOOW
+> - ``<register>``
 ```RGBASM
 	pop <hl/de/bc>
-	```
+```
 
-### Compares a and <value> and sets flags
+### Aritmetic operations
+
+#### Compares a and <value> and sets flags
 - ``<value>``
 
 	| Flag		 | Condition it proves |
