@@ -104,7 +104,7 @@ OPCODES
 ---
 ----
 
-### Interrupt operations
+### CPU Functions
 
 #### Disable interrupts
 > Disables all interrupts until `ei` is called.
@@ -128,6 +128,184 @@ OPCODES
 
 ```RGBASM
 	db <value>, [<value>]
+```
+
+#### NOP
+> No operation, CPU does nothing for 1 instruction cycle.
+
+```RGBASM
+	nop
+```
+
+#### HALT
+> Halts the CPU until an interrupt occurs. During halt the CPU power consumption is reduced. \
+> Use 2 NOPS after a HALT due to a hardware bug.
+
+```RGBASM
+	halt
+```
+
+#### STOP
+> Stops the CPU OR on GBC can change CPU speed. Cant turn the GB back on without hard resetting.
+
+```RGBASM
+	stop
+```
+
+#### Complement
+> Inverts the value of `A` and sets the flags like this:
+> <table>
+    <tr>
+        <th>Flag</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td> Z </td>
+        <td> No effect </td>
+    </tr>
+    <tr>
+        <td> C </td>
+        <td> No effect </td>
+    </tr>
+    <tr>
+        <td> N </td>
+        <td> Set (1) </td>
+    </tr>
+    <tr>
+        <td> H </td>
+        <td> Set (1) </td>
+    </tr>
+> </table>
+
+```RGBASM
+	cpl
+```
+
+#### Complement Carry Flag
+> Inverts the value of the `F` carry flag and sets the flags like this:
+> <table>
+    <tr>
+        <th>Flag</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td> Z </td>
+        <td> No effect </td>
+    </tr>
+    <tr>
+        <td> C </td>
+        <td> Set to result </td>
+    </tr>
+    <tr>
+        <td> N </td>
+        <td> Reset (0) </td>
+    </tr>
+    <tr>
+        <td> H </td>
+        <td> Reset (0) </td>
+    </tr>
+> </table>
+
+```RGBASM
+	ccf
+```
+
+#### Set Carry Flag
+> Sets the value of the `F` carry flag to 1 and sets the flags like this:
+> <table>
+    <tr>
+        <th>Flag</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td> Z </td>
+        <td> No effect </td>
+    </tr>
+    <tr>
+        <td> C </td>
+        <td> Set (1) </td>
+    </tr>
+    <tr>
+        <td> N </td>
+        <td> Reset (0) </td>
+    </tr>
+    <tr>
+        <td> H </td>
+        <td> Reset (0) </td>
+    </tr>
+> </table>
+
+```RGBASM
+	scf
+```
+
+#### Swap
+> Swaps the high and low nibbles of `<destination>` and sets the flags like this:
+> <table>
+    <tr>
+        <th>Flag</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td> Z </td>
+        <td> Set to result </td>
+    </tr>
+    <tr>
+        <td> C </td>
+        <td> Reset (0) </td>
+    </tr>
+    <tr>
+        <td> N </td>
+        <td> Reset (0) </td>
+    </tr>
+    <tr>
+        <td> H </td>
+        <td> Reset (0) </td>
+    </tr>
+> </table>
+>
+> - ``<destination>``
+>   - `<destination>` can be:
+>       - `A`
+>       - `B`
+>       - `D`
+>       - `E`
+>       - `H`
+>       - `L`
+>       - `[HL]`
+>       - ``[$XXXX]``
+
+```RGBASM
+	swap <destination>
+```
+
+#### Decimal Adjust Accumulator:
+> Converts the value of `A` into a packed Binary coded decimal number and sets the flags like this:
+> <table>
+    <tr>
+        <th>Flag</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td> Z </td>
+        <td> Set to result </td>
+    </tr>
+    <tr>
+        <td> C </td>
+        <td> Set to result </td>
+    </tr>
+    <tr>
+        <td> N </td>
+        <td> Reset (0) </td>
+    </tr>
+    <tr>
+        <td> H </td>
+        <td> Set to result </td>
+    </tr>
+> </table>
+
+```RGBASM
+	daa
 ```
 
 ### Flow control operations
@@ -951,7 +1129,7 @@ OPCODES
 ```
 
 #### Rotate right with carry
-> Rotates any register right one bit, placing bit 0 at bit 7 and in the carry flag  and sets the flags like this:
+> Rotates any register right one bit, placing bit 0 at bit 7 and in the carry flag and sets the flags like this:
 > <table>
     <tr>
         <th>Flag</th>
@@ -991,7 +1169,7 @@ OPCODES
 ```
 
 #### Rotate accumulator right
-> Rotates register a right one bit, placing bit 0 at in the carry flag and the carry flag in bit 7
+> Rotates register a right one bit, placing bit 0 at in the carry flag and the carry flag in bit 7 and sets the flags like this:
 > <table>
     <tr>
         <th>Flag</th>
@@ -1320,28 +1498,28 @@ Registers
 
 | Register | Use |
 |------------|-------------|
-	a | 8 bit register accumulator
-	h | 8 bit register
-	l | 8 bit register
-	d | 8 bit register
-	e | 8 bit register
-	b | 8 bit register
-	c | 8 bit register
-	f | 8 bit register for flags
-	hl | h + l as a 16 bit register
-	de | d + e as a 16 bit register
-	bc | b + c as a 16 bit register
-	af | a + f as a 16 bit register, special use
-	sp | Stack register
-	pc | Program register, contains the next instruction to be executed
-	IF | Interrupt flag register
-	IE | Interrupt enable register
-	rLCDC | LCD control byte. uses masks to control how the LCD behaves
-	rLY | Current y coordinate for screen rendering above 144 is VBlank
-	rBGP | Background color pallete
-	rSCY | Screen scroll Y position
-	rSCX | Screen scroll X position
-	rNR52 | rAUDENA = audio enable/disable
+|a | 8 bit register accumulator |
+|h | 8 bit register |
+|l | 8 bit register |
+|d | 8 bit register |
+|e | 8 bit register |
+|b | 8 bit register|
+|c | 8 bit register|
+|f | 8 bit register for flags|
+|hl | h + l as a 16 bit register|
+|de | d + e as a 16 bit register|
+|bc | b + c as a 16 bit register|
+|af | a + f as a 16 bit register, special use|
+|sp | Stack register|
+|pc | Program register, contains the next instruction to be executed|
+|IF | Interrupt flag register|
+|IE | Interrupt enable register|
+|rLCDC | LCD control byte. uses masks to control how the LCD behaves|
+|rLY | Current y coordinate for screen rendering above 144 is VBlank|
+|rBGP | Background color pallete|
+|rSCY | Screen scroll Y position|
+|rSCX | Screen scroll X position|
+|rNR52/rAUDENA| audio enable/disable|
 
 -----
 Memory areas
